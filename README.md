@@ -11,5 +11,5 @@ This is a SelfhelpPlugin that is used for [Fitrockr](https://www.fitrockr.com) i
 
 # Requirements
 
- - SelfHelp v5.9.0+
+ - SelfHelp v5.v5.10.1+
  - PHP Curl module
