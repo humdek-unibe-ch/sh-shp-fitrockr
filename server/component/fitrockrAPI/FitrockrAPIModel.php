@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 ?>
 <?php
-require_once __DIR__ . "/../../../../../component/BaseModel.php";
+require_once __DIR__ . "/../fitrockrUser/FitrockrUserModel.php";
 /**
  * This class is used to prepare all API calls related to Fitrockr
  */
-class FitrockrAPIModel extends BaseModel
+class FitrockrAPIModel extends FitrockrUserModel
 {
 
     /* Private Properties *****************************************************/
@@ -28,9 +28,9 @@ class FitrockrAPIModel extends BaseModel
      *  An associative array holding the different available services. See the
      *  class definition BasePage for a list of all services.
      */
-    public function __construct($services)
+    public function __construct($services, $params)
     {
-        parent::__construct($services);
+        parent::__construct($services, $params);
         $this->fitrockr_settings = $this->db->fetch_page_info(SH_MODULE_FITROCKR);
     }
 
@@ -57,19 +57,16 @@ class FitrockrAPIModel extends BaseModel
 
     /**
      * Create fitrockr user in fitrockr system and assign the fitrockr id to selfhelp for making the link between these users
-     * @param int $id_users
-     * Selfhelp user id
      */
-    public function create_fitrockr_user($id_users)
+    public function create_fitrockr_user()
     {
-        $fitrockrUserModel = new FitrockrUserModel($this->services, array("uid" => $id_users));
-        if ($fitrockrUserModel->get_fitrockr_user_data()) {
+        if ($this->get_fitrockr_user_data()) {
             // fitrockr usr already created
             return;
         }
+        $selected_user = $this->get_selected_user();
         if (isset($this->fitrockr_settings['fitrockr_api_key']) && isset($this->fitrockr_settings['fitrockr_api_tenant'])) {
-            if (isset($this->fitrockr_settings['fitrockr_create_user']) && $this->fitrockr_settings['fitrockr_create_user']) {
-                $selected_user = $fitrockrUserModel->get_selected_user();
+            if (isset($this->fitrockr_settings['fitrockr_create_user']) && $this->fitrockr_settings['fitrockr_create_user']) {                
                 $post_params = array(
                     "id" => null,
                     "firstName" => $selected_user['code'],
@@ -108,15 +105,15 @@ class FitrockrAPIModel extends BaseModel
                 $res = $this->execute_curl_call($data);
                 if (isset($res['id'])) {
                     // user created successfully
-                    $fitrockrUserModel->insert_fitrockr_user(array("fitrockr_user_id" => $res['id']));
-                    $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $id_users, TABLE_USERS_FITROCKR, $id_users, false, "Assign Fitrockr id: " . $res['id'] . " to Selfhelp user: " . $id_users);
+                    $this->insert_fitrockr_user(array("fitrockr_user_id" => $res['id']));
+                    $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $selected_user['id'], TABLE_USERS_FITROCKR, $selected_user['id'], false, "Assign Fitrockr id: " . $res['id'] . " to Selfhelp user: " . $selected_user['id']);
                 } else {
-                    $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $id_users, TABLE_USERS_FITROCKR, null, false, "Error: " . json_encode($res));
+                    $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $selected_user['id'], TABLE_USERS_FITROCKR, null, false, "Error: " . json_encode($res));
                 }
             }
         } else {
             // Fitrcockr settings are not set
-            $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $id_users, TABLE_USERS_FITROCKR, null, false, "Error: Fitrockr settings are not assigned");
+            $this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_user, $selected_user['id'], TABLE_USERS_FITROCKR, null, false, "Error: Fitrockr settings are not assigned");
         }
     }
 }
