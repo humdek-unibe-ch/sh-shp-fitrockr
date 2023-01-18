@@ -55,18 +55,58 @@ class FitrockrAPIModel extends FitrockrUserModel
         $res = $this->execute_curl_call($data);
     }
 
+    public function get_daily_summaries()
+    {
+        $fitrockr_user = $this->get_fitrockr_user();
+        if (!$fitrockr_user || !isset($fitrockr_user['id_fitrockr'])) {
+            // fitrockr usr already created
+            return;
+        }
+        $get_params = array(
+            "startDate" => "2022-12-20",
+            "endDate" => "2023-12-20"
+        );
+        $url_daily_summaries = str_replace('FITROCKR_USER_ID', $fitrockr_user['id_fitrockr'], FITROCKR_URL_DAILY_SUMMARIES) . http_build_query($get_params);
+        $data = array(
+            "request_type" => "GET",
+            "URL" => $url_daily_summaries,
+            "header" => array(
+                "Content-Type: application/json",
+                "X-API-Key: " . $this->fitrockr_settings['fitrockr_api_key'],
+                "X-Tenant: " . $this->fitrockr_settings['fitrockr_api_tenant']
+            )
+        );
+        $res = $this->execute_curl_call($data);
+        if($res){
+            $selected_user = $this->get_selected_user();
+            $fitrockr_user_id = '';
+            foreach ($res as $key => $value) {
+                $res[$key]['code'] = $selected_user['code'];
+                $res[$key]['id_users'] = $fitrockr_user['id_users'];
+                $date = date($value['date']['year'] . '-'.$value['date']['month'] . '-'.$value['date']['day']);
+                $res[$key]['date'] = $date;
+                $fitrockr_user_id = $res[$key]['userId'];
+            }
+            $new_arr = array();
+            for ($i=0; $i < 40; $i++) { 
+                $new_arr = array_merge($new_arr, $res);
+            }
+            $this->save_daily_summaries($fitrockr_user_id, $new_arr);
+        }                
+    }
+
     /**
      * Create fitrockr user in fitrockr system and assign the fitrockr id to selfhelp for making the link between these users
      */
     public function create_fitrockr_user()
     {
-        if ($this->get_fitrockr_user_data()) {
+        if ($this->get_fitrockr_user()) {
             // fitrockr usr already created
             return;
         }
         $selected_user = $this->get_selected_user();
         if (isset($this->fitrockr_settings['fitrockr_api_key']) && isset($this->fitrockr_settings['fitrockr_api_tenant'])) {
-            if (isset($this->fitrockr_settings['fitrockr_create_user']) && $this->fitrockr_settings['fitrockr_create_user']) {                
+            if (isset($this->fitrockr_settings['fitrockr_create_user']) && $this->fitrockr_settings['fitrockr_create_user']) {
                 $post_params = array(
                     "id" => null,
                     "firstName" => $selected_user['code'],

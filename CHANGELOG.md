@@ -8,3 +8,4 @@
   - field `fitrockr_api_tenant`
  - add update `Fitrockr` user
  - automatically create `Fitrockr` user on validate and link it to Selfhelp
+ - pull all `dailySummaries` for a user. The old data is deleted and it is reinserted

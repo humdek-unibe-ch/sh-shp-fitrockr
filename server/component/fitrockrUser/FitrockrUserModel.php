@@ -17,7 +17,7 @@ class FitrockrUserModel extends UserModel
     /**
      * The fitrockr_user_data.
      */
-    private $fitrockr_user_data;
+    private $fitrockr_user;
 
     /**
      * Selected user id
@@ -35,19 +35,18 @@ class FitrockrUserModel extends UserModel
      */
     public function __construct($services, $params)
     {
-        parent::__construct($services, $params['uid']);        
+        parent::__construct($services, $params['uid']);
         $this->uid = $params['uid'];
-        $this->fitrockr_user_data = $this->fetch_fitrockr_user_data();
     }
 
     /* Private Methods *********************************************************/
 
     /**
-     * Fetch the fitrockr user data from DB
+     * Fetch the fitrockr user info from DB
      * @return object
      * Return the fitrockr user object
      */
-    private function fetch_fitrockr_user_data()
+    private function fetch_fitrockr_user()
     {
         return $this->db->query_db_first('SELECT * FROM users_fitrockr WHERE `id_users` = :id_users', array(":id_users" => $this->uid));
     }
@@ -70,7 +69,7 @@ class FitrockrUserModel extends UserModel
         );
         $this->transaction->add_transaction(transactionTypes_update, transactionBy_by_user, $_SESSION['id_user'], TABLE_USERS_FITROCKR, $this->uid, false, json_encode($res));
         return $res;
-    }    
+    }
 
     /* Public Methods *********************************************************/
 
@@ -112,12 +111,89 @@ class FitrockrUserModel extends UserModel
     }
 
     /**
-     * Get the fitrockr user data
+     * Get the fitrockr user
      * @return object
-     * Return the data for the fitrockr user
+     * Return the info for the fitrockr user
      */
-    public function get_fitrockr_user_data(){
-        $this->fitrockr_user_data = $this->fetch_fitrockr_user_data();
-        return $this->fitrockr_user_data;
+    public function get_fitrockr_user()
+    {
+        return $this->fetch_fitrockr_user();
+    }
+
+    public function save_daily_summaries($fitrockr_user_id, $data)
+    {
+
+        $table_name = FITROCKR_DAILY_SUMMARIES; //the table where we will save the 
+        $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_STATIC);
+        $this->db->begin_transaction();
+        if ($id_table) {
+            // if the table exists, delete all the data for that user in that table
+            // we will insert all the data again
+            $sql= "DELETE FROM uploadRows
+            WHERE id IN (SELECT id_uploadRows FROM (SELECT id_uploadRows
+            FROM uploadCells c
+            INNER JOIN uploadRows r ON (r.id = c.id_uploadRows)
+            INNER JOIN uploadTables t ON (t.id = r.id_uploadTables)
+            WHERE c.`value` = :fitrockr_user_id AND t.`name` = :table_name) tmp)";
+            $this->db->execute_update_db($sql, array(
+                ":fitrockr_user_id" => $fitrockr_user_id,
+                ":table_name" => FITROCKR_DAILY_SUMMARIES
+            ));
+            
+        }
+        try {   
+            if (!$id_table) {
+                // does not exists yet; try to create it
+                $id_table = $this->db->insert("uploadTables", array(
+                    "name" => $table_name
+                ));
+            }
+            if (!$id_table) {
+                $this->db->rollback();
+                return "postprocess: failed to create new data table";
+            } else {
+                if ($this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_qualtrics_callback, null, $this->transaction::TABLE_uploadTables, $id_table) === false) {
+                    $this->db->rollback();
+                    return false;
+                }
+
+                foreach ($data as $key => $row) {
+                    $id_row = $this->db->insert("uploadRows", array(
+                        "id_uploadTables" => $id_table
+                    ));
+                    if (!$id_row) {
+                        $this->db->rollback();
+                        return "postprocess: failed to add table rows";
+                    }
+                    foreach ($row as $col => $value) {
+                        $id_col = $this->db->insert("uploadCols", array(
+                            "name" => $col,
+                            "id_uploadTables" => $id_table
+                        ));
+                        if (!$id_col) {
+                            $this->db->rollback();
+                            return "postprocess: failed to add table cols";
+                        }
+                        $res = $this->db->insert(
+                            "uploadCells",
+                            array(
+                                "id_uploadRows" => $id_row,
+                                "id_uploadCols" => $id_col,
+                                "value" => $value
+                            )
+                        );
+                        if (!$res) {
+                            $this->db->rollback();
+                            return "postprocess: failed to add data values";
+                        }
+                    }
+                }
+            }
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollback();
+            return false;
+        }
     }
 }
