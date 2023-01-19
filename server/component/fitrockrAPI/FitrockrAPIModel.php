@@ -55,8 +55,8 @@ class FitrockrAPIModel extends FitrockrUserModel
             return false;
         }
         $get_params = array(
-            "startDate" => "2022-10-20",
-            "endDate" => "2023-12-20"
+            "startDate" => (isset($this->fitrockr_settings['fitrockr_start_date']) && $this->fitrockr_settings['fitrockr_start_date'] != '' ? $this->fitrockr_settings['fitrockr_start_date'] : date("Y-m-d")),
+            "endDate" => date("Y-m-d") //current date
         );
         $url = str_replace('FITROCKR_USER_ID', $fitrockr_user['id_fitrockr'], FITROCKR_URL_DAILY_SUMMARIES) . http_build_query($get_params);
         $data = array(
@@ -163,8 +163,8 @@ class FitrockrAPIModel extends FitrockrUserModel
             return false;
         }
         $get_params = array(
-            "startDate" => "2022-10-20",
-            "endDate" => "2023-12-20"
+            "startDate" => (isset($this->fitrockr_settings['fitrockr_start_date']) && $this->fitrockr_settings['fitrockr_start_date'] != '' ? $this->fitrockr_settings['fitrockr_start_date'] : date("Y-m-d")),
+            "endDate" => date("Y-m-d") //current date
         );
         $url = str_replace('FITROCKR_USER_ID', $fitrockr_user['id_fitrockr'], FITROCKR_URL_ACTIVITIES) . http_build_query($get_params);
         $data = array(
@@ -183,17 +183,61 @@ class FitrockrAPIModel extends FitrockrUserModel
                 return false;
             }
             $selected_user = $this->get_selected_user();
+            $dates_with_activity = array();
+            $fitrockr_activity_duration = isset($this->fitrockr_settings['fitrockr_activity_duration']) && $this->fitrockr_settings['fitrockr_activity_duration'] != '' ? $this->fitrockr_settings['fitrockr_activity_duration'] : 0;
             foreach ($res as $key => $value) {
                 $res[$key]['code'] = $selected_user['code'];
                 $res[$key]['id_users'] = $fitrockr_user['id_users'];
-                $startDate = date($value['startDate']['date']['year'] . '-' . $value['startDate']['date']['month'] . '-' . $value['startDate']['date']['day'] . 
-                ' ' . $value['startDate']['time']['hour'] . ':' . $value['startDate']['time']['minute'] . ':' . $value['startDate']['time']['second'] );
-                $endDate = date($value['endDate']['date']['year'] . '-' . $value['endDate']['date']['month'] . '-' . $value['endDate']['date']['day'] . 
-                ' ' . $value['endDate']['time']['hour'] . ':' . $value['endDate']['time']['minute'] . ':' . $value['endDate']['time']['second'] );
+                $startDate = date($value['startDate']['date']['year'] . '-' . $value['startDate']['date']['month'] . '-' . $value['startDate']['date']['day'] .
+                    ' ' . $value['startDate']['time']['hour'] . ':' . $value['startDate']['time']['minute'] . ':' . $value['startDate']['time']['second']);
+                $endDate = date($value['endDate']['date']['year'] . '-' . $value['endDate']['date']['month'] . '-' . $value['endDate']['date']['day'] .
+                    ' ' . $value['endDate']['time']['hour'] . ':' . $value['endDate']['time']['minute'] . ':' . $value['endDate']['time']['second']);
                 $res[$key]['startDate'] = $startDate;
                 $res[$key]['endDate'] = $endDate;
+                $date = date($value['startDate']['date']['year'] . '-' . $value['startDate']['date']['month'] . '-' . $value['startDate']['date']['day']);
+                $date = date('Y-m-d H:i:s', strtotime($startDate . ' -' . ($this->fitrockr_settings['fitrockr_activity_buffer_time'] ? $this->fitrockr_settings['fitrockr_activity_buffer_time'] : 0) . ' hours'));
+                $res[$key]['date_time'] = $date;
+                $res[$key]['date'] = (new DateTime($date))->format('Y-m-d');
+                $activity = array(
+                    "code" => $selected_user['code'],
+                    "id_users" => $fitrockr_user['id_users'],
+                    "userId" => $fitrockr_user['id_fitrockr'],
+                    "date" => $res[$key]['date'],
+                    "duration" => $res[$key]['duration'],
+                    "activity_level" => (($res[$key]['duration'] >= ($fitrockr_activity_duration * 60)) ? 2 : 1)
+                );
+                if (isset($dates_with_activity[$activity['date']]) && $dates_with_activity[$activity['date']] == $activity['date']) {
+                    // the date has more than 1 activity; we need the one with the highest duration
+                    if ($activity['duration'] > $dates_with_activity[$activity['date']]['duration']) {
+                        $dates_with_activity[$activity['date']]['duration'] = $activity['duration']; // update it with the higher duration
+                    }
+                } else {
+                    $dates_with_activity[$activity['date']] = $activity;
+                }
             }
-            return $this->save_fitrockr_data(FITROCKR_ACTIVITIES, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $res);
+
+            $calced_activities = array();
+            if (count($res) > 0) {
+                $first_entry_date = $res[count($res) - 1]['date'];
+                $days = (new DateTime(date("Y-m-d")))->diff(new DateTime($first_entry_date))->days;
+                for ($i = 0; $i < $days + 1; $i++) {
+                    $check_date = date('Y-m-d', strtotime($first_entry_date . ' +' . $i . ' day'));
+                    if (isset($dates_with_activity[$check_date])) {
+                        $calced_activities[] = $dates_with_activity[$check_date];
+                    } else {
+                        $calced_activities[] = array(
+                            "code" => $selected_user['code'],
+                            "id_users" => $fitrockr_user['id_users'],
+                            "userId" => $fitrockr_user['id_fitrockr'],
+                            "date" => $check_date,
+                            "activity_level" => 0
+                        );
+                    }
+                }
+            }
+
+            $save_fitrockr_activities_result = $this->save_fitrockr_data(FITROCKR_ACTIVITIES, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $res);
+            return $save_fitrockr_activities_result && $this->save_fitrockr_data(FITROCKR_ACTIVITIES_SUMMARY, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $calced_activities);
         }
         return false;
     }

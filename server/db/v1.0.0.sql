@@ -2,13 +2,13 @@
 INSERT IGNORE INTO plugins (name, version) 
 VALUES ('fitrockr', 'v1.0.0');
 
--- add page type global_values
+-- add page type sh_module_fitrockr
 INSERT IGNORE INTO `pageType` (`name`) VALUES ('sh_module_fitrockr');
 
 SET @id_page_modules = (SELECT id FROM pages WHERE keyword = 'sh_modules');
 -- add translation page
 INSERT IGNORE INTO `pages` (`id`, `keyword`, `url`, `protocol`, `id_actions`, `id_navigation_section`, `parent`, `is_headless`, `nav_position`, `footer_position`, `id_type`, `id_pageAccessTypes`) 
-VALUES (NULL, 'sh_module_fitrockr', '/admin/module_fitrockr', 'GET|POST', (SELECT id FROM actions WHERE `name` = 'backend' LIMIT 0,1), NULL, @id_page_modules, 0, 100, NULL, (SELECT id FROM pageType WHERE `name` = 'sh_global_fitrockr' LIMIT 0,1), (SELECT id FROM lookups WHERE lookup_code = 'mobile_and_web'));
+VALUES (NULL, 'sh_module_fitrockr', '/admin/module_fitrockr', 'GET|POST', (SELECT id FROM actions WHERE `name` = 'backend' LIMIT 0,1), NULL, @id_page_modules, 0, 100, NULL, (SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), (SELECT id FROM lookups WHERE lookup_code = 'mobile_and_web'));
 SET @id_page_values = (SELECT id FROM pages WHERE keyword = 'sh_module_fitrockr');
 INSERT IGNORE INTO `acl_groups` (`id_groups`, `id_pages`, `acl_select`, `acl_insert`, `acl_update`, `acl_delete`) VALUES ('0000000001', @id_page_values, '1', '0', '1', '0');
 
@@ -18,10 +18,22 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, '
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_api_tenant', get_field_type_id('text'), '0');
 -- add new filed `fitrockr_create_user` from type JSON
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_create_user', get_field_type_id('checkbox'), '0');
+-- add new filed `fitrockr_pull_data` from type JSON
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_pull_data', get_field_type_id('checkbox'), '0');
+-- add new filed `fitrockr_activity_duration` from type JSON
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_activity_duration', get_field_type_id('number'), '0');
+-- add new filed `fitrockr_activity_buffer_time` from type JSON
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_activity_buffer_time', get_field_type_id('number'), '0');
+-- add new filed `fitrockr_start_date` from type JSON
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`) VALUES (NULL, 'fitrockr_start_date', get_field_type_id('date'), '0');
 
 INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_api_key'), NULL, 'Fitrockr API key');
 INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_api_tenant'), NULL, 'Fitrockr API tenant');
+INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_pull_data'), NULL, 'If enabled the data will be pulled every 1 hour via a `cron` task');
+INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_activity_duration'), 15, 'Activity duration (in minutes)');
+INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_activity_buffer_time'), NULL, 'Activity buffer time (in hours). If the day should be extended for late night activity');
 INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_create_user'), NULL, 'If selected, it will create automatically a user in Fitrockr platform once the user account is validated');
+INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('fitrockr_start_date'), NULL, 'The start date which will be used for pulling the data');
 INSERT IGNORE INTO `pageType_fields` (`id_pageType`, `id_fields`, `default_value`, `help`) VALUES ((SELECT id FROM pageType WHERE `name` = 'sh_module_fitrockr' LIMIT 0,1), get_field_id('title'), NULL, 'Page title');
 INSERT IGNORE INTO `pages_fields_translation` (`id_pages`, `id_fields`, `id_languages`, `content`) VALUES (@id_page_values, get_field_id('title'), '0000000001', 'Module Fitrockr');
 INSERT IGNORE INTO `pages_fields_translation` (`id_pages`, `id_fields`, `id_languages`, `content`) VALUES (@id_page_values, get_field_id('title'), '0000000002', 'Module Fitrockr');

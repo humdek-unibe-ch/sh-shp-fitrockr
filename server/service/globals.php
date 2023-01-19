@@ -8,6 +8,7 @@
     define('FITROCKR_UPDATE_USER', 'fitrockr_update_user');
     define('FITROCKR_DAILY_SUMMARIES', 'fitrockr_daily_summaries');
     define('FITROCKR_ACTIVITIES', 'fitrockr_activities');
+    define('FITROCKR_ACTIVITIES_SUMMARY', 'fitrockr_activities_summary');
 
     /* Page keywords */
     define('SH_MODULE_FITROCKR', 'sh_module_fitrockr');
