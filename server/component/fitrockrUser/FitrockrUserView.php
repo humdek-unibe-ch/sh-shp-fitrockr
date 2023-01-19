@@ -99,7 +99,7 @@ class FitrockrUserView extends BaseView
     public function output_update_fitrockr_user()
     {
         $selected_user = $this->model->get_selected_user();
-        $fitrockr_user = $this->model->get_fitrockr_user_data();
+        $fitrockr_user = $this->model->get_fitrockr_user();
         $fitrockr_user_id_field = array(
             "title" => "Fitrockr ID",
             "help" => 'Fitrockr ID code which is used for linking accounts between Selfhelp and Fitrockr',

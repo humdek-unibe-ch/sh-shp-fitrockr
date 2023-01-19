@@ -15,11 +15,6 @@ class FitrockrUserModel extends UserModel
     /* Private Properties *****************************************************/
 
     /**
-     * The fitrockr_user_data.
-     */
-    private $fitrockr_user;
-
-    /**
      * Selected user id
      */
     private $uid;
@@ -43,12 +38,14 @@ class FitrockrUserModel extends UserModel
 
     /**
      * Fetch the fitrockr user info from DB
+     * @param int $id_users
+     * Selfhelp user id
      * @return object
      * Return the fitrockr user object
      */
-    private function fetch_fitrockr_user()
+    private function fetch_fitrockr_user($id_users)
     {
-        return $this->db->query_db_first('SELECT * FROM users_fitrockr WHERE `id_users` = :id_users', array(":id_users" => $this->uid));
+        return $this->db->query_db_first('SELECT * FROM users_fitrockr WHERE `id_users` = :id_users', array(":id_users" => $id_users));
     }
 
     /**
@@ -70,6 +67,9 @@ class FitrockrUserModel extends UserModel
         $this->transaction->add_transaction(transactionTypes_update, transactionBy_by_user, $_SESSION['id_user'], TABLE_USERS_FITROCKR, $this->uid, false, json_encode($res));
         return $res;
     }
+
+
+    
 
     /* Public Methods *********************************************************/
 
@@ -102,7 +102,7 @@ class FitrockrUserModel extends UserModel
      */
     public function save_fitrockr_user($user_data)
     {
-        if ($this->fitrockr_user_data) {
+        if ($this->get_fitrockr_user($this->uid)) {
             return $this->update_fitrockr_user($user_data);
         } else {
             return $this->insert_fitrockr_user($user_data);
@@ -112,18 +112,35 @@ class FitrockrUserModel extends UserModel
 
     /**
      * Get the fitrockr user
+     * @param int $id_users
+     * Selfhelp user id
      * @return object
      * Return the info for the fitrockr user
      */
-    public function get_fitrockr_user()
+    public function get_fitrockr_user($id_users = null)
     {
-        return $this->fetch_fitrockr_user();
+        if($id_users == null){
+            $id_users = $this->get_uid();
+        }
+        return $this->fetch_fitrockr_user($id_users);
     }
 
-    public function save_daily_summaries($fitrockr_user_id, $data)
-    {
-
-        $table_name = FITROCKR_DAILY_SUMMARIES; //the table where we will save the 
+    /**
+     * Save data from fitrockr request as uploadTable
+     * @param string $table_name
+     * The name of the upload table where the data will be saved
+     * @param string $action_by
+     * Who initiated the action
+     * @param string $fitrockr_user_id
+     * The fitrockr user id
+     * @param int $id_users
+     * The selfhelp user id
+     * @param object $data
+     * The data that we want to save. It is a format that can be inserted as uploadTable
+     * @return bool
+     * Return the result of the action
+     */
+    public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $id_users, $data){
         $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_STATIC);
         $this->db->begin_transaction();
         if ($id_table) {
@@ -137,7 +154,7 @@ class FitrockrUserModel extends UserModel
             WHERE c.`value` = :fitrockr_user_id AND t.`name` = :table_name) tmp)";
             $this->db->execute_update_db($sql, array(
                 ":fitrockr_user_id" => $fitrockr_user_id,
-                ":table_name" => FITROCKR_DAILY_SUMMARIES
+                ":table_name" => $table_name
             ));
             
         }
@@ -152,7 +169,14 @@ class FitrockrUserModel extends UserModel
                 $this->db->rollback();
                 return "postprocess: failed to create new data table";
             } else {
-                if ($this->transaction->add_transaction(transactionTypes_insert, transactionBy_by_qualtrics_callback, null, $this->transaction::TABLE_uploadTables, $id_table) === false) {
+                if ($this->transaction->add_transaction(
+                    transactionTypes_insert, 
+                    $action_by, 
+                    null, 
+                    $this->transaction::TABLE_uploadTables, 
+                    $id_table, 
+                    'Insert data in ' . $table_name . ' for Fitrockr user: ' . $fitrockr_user_id . ' with selfhelp user id: ' . $id_users
+                    ) === false) {
                     $this->db->rollback();
                     return false;
                 }
@@ -179,7 +203,7 @@ class FitrockrUserModel extends UserModel
                             array(
                                 "id_uploadRows" => $id_row,
                                 "id_uploadCols" => $id_col,
-                                "value" => $value
+                                "value" => ($value == null ? '' : $value)
                             )
                         );
                         if (!$res) {
