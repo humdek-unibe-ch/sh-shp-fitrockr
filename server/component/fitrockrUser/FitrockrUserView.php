@@ -97,8 +97,7 @@ class FitrockrUserView extends BaseView
      * Render edit fitrockr user
      */
     public function output_update_fitrockr_user()
-    {
-        $selected_user = $this->model->get_selected_user();
+    {        
         $fitrockr_user = $this->model->get_fitrockr_user();
         $fitrockr_user_id_field = array(
             "title" => "Fitrockr ID",
@@ -116,7 +115,7 @@ class FitrockrUserView extends BaseView
             "css" => "mb-3",
             "is_expanded" => true,
             "is_collapsible" => false,
-            "title" => "Code: <span><code> &nbsp;" . $selected_user['code'] . ' &nbsp;</span></code> Email: &nbsp;<span><code>' . $selected_user['email'] . '</code></span>',
+            "title" => "Fitrockr User Data",
             "type" => "warning",
             "children" => array(
                 new BaseStyleComponent("form", array(
@@ -174,6 +173,11 @@ class FitrockrUserView extends BaseView
             )
         ));
         $cardPullData->output_content();
+    }
+
+    public function output_user_info(){
+        $selected_user = $this->model->get_selected_user();
+        echo "Code: <span><code> &nbsp;" . $selected_user['code'] . ' &nbsp;</span></code> Email: &nbsp;<span><code>' . $selected_user['email'] . '</code></span>';
     }
 }
 ?>

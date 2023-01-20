@@ -7,7 +7,8 @@
     <?php $this->output_alert(); ?>
     <div class="jumbotron">
         <h1>Fitrockr User</h1>
-        <p>Update the information for the Fitorckr user</p>
+        <p>Update the information for the selected Fitorckr user</p>
+        <p><?php $this->output_user_info(); ?></p>
     </div>
     <?php $this->output_update_fitrockr_user(); ?>
 </div>

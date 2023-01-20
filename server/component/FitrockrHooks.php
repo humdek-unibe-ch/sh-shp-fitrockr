@@ -37,9 +37,6 @@ class FitrockrHooks extends BaseHooks
     public function output_view_fitrockr_user()
     {
         new FitrockrUserComponent($this->services, array("uid" => $this->router->get_param_by_name('uid')));
-        $api = new FitrockrAPIModel($this->services, array("uid" => $this->router->get_param_by_name('uid')));
-        // $api->get_daily_summaries($this->router->get_param_by_name('uid'));
-        // $api->get_activities($this->router->get_param_by_name('uid'));
     }
 
     /**
