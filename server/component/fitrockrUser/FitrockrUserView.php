@@ -168,13 +168,16 @@ class FitrockrUserView extends BaseView
 
 
                         )
-                    ),
+                    )
                 )
             )
         ));
         $cardPullData->output_content();
     }
 
+    /**
+     * Output the user info
+     */
     public function output_user_info(){
         $selected_user = $this->model->get_selected_user();
         echo "Code: <span><code> &nbsp;" . $selected_user['code'] . ' &nbsp;</span></code> Email: &nbsp;<span><code>' . $selected_user['email'] . '</code></span>';
