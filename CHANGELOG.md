@@ -1,3 +1,8 @@
+# v1.0.1
+
+### Bugfix
+ - properly set height, weight and year
+
 # v1.0.0
 
 ### New Features

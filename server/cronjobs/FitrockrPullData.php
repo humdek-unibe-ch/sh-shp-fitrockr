@@ -13,7 +13,7 @@ require_once __DIR__ . "/../service/globals.php";
 /**
  * SETUP
  * Make the script executable:  chmod +x
- * Cronjob (Pull Fitrockr user data every hour and execute them if there any) 0 * * * * php /home/user/selfhelp/server/plugins/fitrockr/server/cronjobs/class FitrockrPullData.php 
+ * Cronjob (Pull Fitrockr user data every hour and execute them if there any) 0 * * * * php --define apc.enable_cli=1 /home/user/selfhelp/server/plugins/fitrockr/server/cronjobs/FitrockrPullData.php 
  */
 
 /**
