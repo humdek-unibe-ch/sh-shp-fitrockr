@@ -31,7 +31,7 @@ class FitrockrUserController extends BaseController
 
     private function proccess_data()
     {
-        if (isset($_POST["fitrockr_user_id"])) {
+        if (isset($_POST["fitrockr_user_id"]) && $this->model->get_mode() == FITROCKR_USER_UPDATE) {
             if ($this->model->save_fitrockr_user(
                 array(
                     "fitrockr_user_id" => $_POST["fitrockr_user_id"]
@@ -42,6 +42,31 @@ class FitrockrUserController extends BaseController
             } else {
                 $this->fail = true;
                 $this->error_msgs[] = "Failed to save the user.";
+            }
+        } else if ($this->model->get_mode() == FITROCKR_USER_PULL_DATE) {
+            if (isset($_POST[FITROCKR_DAILY_SUMMARIES]) || isset($_POST[FITROCKR_ACTIVITIES])) {
+                $api = new FitrockrAPIModel($this->model->get_services(), array("uid" => $this->model->get_uid()));
+            } else {
+                $this->fail = true;
+                $this->error_msgs[] = "Please select which data should be pulled!";
+            }
+            if (isset($_POST[FITROCKR_DAILY_SUMMARIES])) {
+                if ($api->get_daily_summaries($this->model->get_uid())) {
+                    $this->success = true;
+                    $this->success_msgs[] = "The daily summaries were pulled and updated!";
+                } else {
+                    $this->fail = true;
+                    $this->error_msgs[] = "Error while updating the daily summaries!";
+                }
+            }
+            if (isset($_POST[FITROCKR_ACTIVITIES])) {
+                if ($api->get_activities($this->model->get_uid())) {
+                    $this->success = true;
+                    $this->success_msgs[] = "The user activities were pulled and updated!";
+                } else {
+                    $this->fail = true;
+                    $this->error_msgs[] = "Error while updating the user activities!";
+                }
             }
         }
     }

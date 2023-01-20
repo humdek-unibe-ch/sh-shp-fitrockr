@@ -52,7 +52,7 @@ class FitrockrUserView extends BaseView
             "is_collapsible" => false,
             "title" => "Fitrockr User",
             "type" => "info",
-            "url_edit" => $this->model->get_services()->get_router()->get_link_url("userUpdate", array("uid" => $this->params['uid'], "mode" => FITROCKR_UPDATE_USER)),
+            "url_edit" => $this->model->get_services()->get_router()->get_link_url("userUpdate", array("uid" => $this->params['uid'], "mode" => FITROCKR_USER_UPDATE)),
             "children" => array(
                 new BaseStyleComponent("form", array(
                     "label" => "",
@@ -72,7 +72,7 @@ class FitrockrUserView extends BaseView
      */
     public function output_content()
     {
-        if (isset($this->params['mode']) && $this->params['mode'] == FITROCKR_UPDATE_USER) {
+        if (isset($this->params['mode']) && in_array($this->params['mode'], array(FITROCKR_USER_UPDATE, FITROCKR_USER_PULL_DATE))) {
             require __DIR__ . "/tpl_update_fitrockr_user.php";
         } else {
             $this->output_view_mode();
@@ -121,7 +121,7 @@ class FitrockrUserView extends BaseView
             "children" => array(
                 new BaseStyleComponent("form", array(
                     "label" => "Save",
-                    "url" => $this->model->get_services()->get_router()->get_link_url("userUpdate", array("uid" => $this->params['uid'], "mode" => FITROCKR_UPDATE_USER)),
+                    "url" => $this->model->get_services()->get_router()->get_link_url("userUpdate", array("uid" => $this->params['uid'], "mode" => FITROCKR_USER_UPDATE)),
                     "url_cancel" => $this->model->get_link_url("userSelect", array("uid" => $this->params['uid'])),
                     "label_cancel" => "Back to the User",
                     "type" => "warning",
@@ -130,6 +130,50 @@ class FitrockrUserView extends BaseView
             )
         ));
         $card->output_content();
+
+        $cardPullData = new BaseStyleComponent("card", array(
+            "css" => "mb-3",
+            "is_expanded" => true,
+            "is_collapsible" => false,
+            "title" => "Pull Fitrockr Data",
+            "type" => "info",
+            "children" => array(
+                new BaseStyleComponent(
+                    "form",
+                    array(
+                        "label" => "Pull Data",
+                        "url" => $this->model->get_services()->get_router()->get_link_url("userUpdate", array("uid" => $this->params['uid'], "mode" => FITROCKR_USER_PULL_DATE)),
+                        "type" => "info",
+                        "name" => FITROCKR_USER_PULL_DATE,
+                        "children" => array(
+                            new BaseStyleComponent("descriptionItem", array(
+                                "title" => "Daily Summaries",
+                                "help" => 'If selected it will pull the daily summaries for the selected user',
+                                "display" => 0,
+                                "css" => 'border-0',
+                                "children" => array(new BaseStyleComponent("input", array(
+                                    "type_input" => "checkbox",
+                                    "name" => FITROCKR_DAILY_SUMMARIES,
+                                )))
+                            )),
+                            new BaseStyleComponent("descriptionItem", array(
+                                "title" => "Activities",
+                                "help" => 'If selected it will pull the activities for the selected user',
+                                "display" => 0,
+                                "css" => 'border-0',
+                                "children" => array(new BaseStyleComponent("input", array(
+                                    "type_input" => "checkbox",
+                                    "name" => FITROCKR_ACTIVITIES
+                                )))
+                            ))
+
+
+                        )
+                    ),
+                )
+            )
+        ));
+        $cardPullData->output_content();
     }
 }
 ?>

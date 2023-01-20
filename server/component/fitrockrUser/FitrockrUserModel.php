@@ -19,6 +19,11 @@ class FitrockrUserModel extends UserModel
      */
     private $uid;
 
+    /**
+     * Request mode
+     */
+    private $mode;
+
     /* Constructors ***********************************************************/
 
     /**
@@ -32,6 +37,7 @@ class FitrockrUserModel extends UserModel
     {
         parent::__construct($services, $params['uid']);
         $this->uid = $params['uid'];
+        $this->mode = isset($params['mode']) ? $params['mode'] : "";
     }
 
     /* Private Methods *********************************************************/
@@ -69,7 +75,7 @@ class FitrockrUserModel extends UserModel
     }
 
 
-    
+
 
     /* Public Methods *********************************************************/
 
@@ -119,7 +125,7 @@ class FitrockrUserModel extends UserModel
      */
     public function get_fitrockr_user($id_users = null)
     {
-        if($id_users == null){
+        if ($id_users == null) {
             $id_users = $this->get_uid();
         }
         return $this->fetch_fitrockr_user($id_users);
@@ -140,13 +146,14 @@ class FitrockrUserModel extends UserModel
      * @return bool
      * Return the result of the action
      */
-    public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $id_users, $data){
+    public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $id_users, $data)
+    {
         $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_STATIC);
         $this->db->begin_transaction();
         if ($id_table) {
             // if the table exists, delete all the data for that user in that table
             // we will insert all the data again
-            $sql= "DELETE FROM uploadRows
+            $sql = "DELETE FROM uploadRows
             WHERE id IN (SELECT id_uploadRows FROM (SELECT id_uploadRows
             FROM uploadCells c
             INNER JOIN uploadRows r ON (r.id = c.id_uploadRows)
@@ -156,9 +163,8 @@ class FitrockrUserModel extends UserModel
                 ":fitrockr_user_id" => $fitrockr_user_id,
                 ":table_name" => $table_name
             ));
-            
         }
-        try {   
+        try {
             if (!$id_table) {
                 // does not exists yet; try to create it
                 $id_table = $this->db->insert("uploadTables", array(
@@ -170,13 +176,13 @@ class FitrockrUserModel extends UserModel
                 return "postprocess: failed to create new data table";
             } else {
                 if ($this->transaction->add_transaction(
-                    transactionTypes_insert, 
-                    $action_by, 
-                    null, 
-                    $this->transaction::TABLE_uploadTables, 
-                    $id_table, 
+                    transactionTypes_insert,
+                    $action_by,
+                    null,
+                    $this->transaction::TABLE_uploadTables,
+                    $id_table,
                     'Insert data in ' . $table_name . ' for Fitrockr user: ' . $fitrockr_user_id . ' with selfhelp user id: ' . $id_users
-                    ) === false) {
+                ) === false) {
                     $this->db->rollback();
                     return false;
                 }
@@ -219,5 +225,14 @@ class FitrockrUserModel extends UserModel
             $this->db->rollback();
             return false;
         }
+    }
+
+    /**
+     * Get the request mode if set
+     * @return string
+     * the request mode
+     */
+    public function get_mode(){
+        return $this->mode;
     }
 }

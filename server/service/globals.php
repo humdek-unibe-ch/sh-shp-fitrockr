@@ -5,7 +5,8 @@
 ?>
 
 <?php
-    define('FITROCKR_UPDATE_USER', 'fitrockr_update_user');
+    define('FITROCKR_USER_UPDATE', 'fitrockr_user_update');
+    define('FITROCKR_USER_PULL_DATE', 'fitrockr_user_pull_date');
     define('FITROCKR_DAILY_SUMMARIES', 'fitrockr_daily_summaries');
     define('FITROCKR_ACTIVITIES', 'fitrockr_activities');
     define('FITROCKR_ACTIVITIES_SUMMARY', 'fitrockr_activities_summary');

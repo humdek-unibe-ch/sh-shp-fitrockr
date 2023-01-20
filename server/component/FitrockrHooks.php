@@ -38,8 +38,8 @@ class FitrockrHooks extends BaseHooks
     {
         new FitrockrUserComponent($this->services, array("uid" => $this->router->get_param_by_name('uid')));
         $api = new FitrockrAPIModel($this->services, array("uid" => $this->router->get_param_by_name('uid')));
-        $api->get_daily_summaries($this->router->get_param_by_name('uid'));
-        $api->get_activities($this->router->get_param_by_name('uid'));
+        // $api->get_daily_summaries($this->router->get_param_by_name('uid'));
+        // $api->get_activities($this->router->get_param_by_name('uid'));
     }
 
     /**
@@ -56,7 +56,7 @@ class FitrockrHooks extends BaseHooks
             "hookedClassInstance" => $args['hookedClassInstance'],
             "propertyName" => "mode"
         ));
-        if ($mode == FITROCKR_UPDATE_USER) {
+        if (in_array($mode, array(FITROCKR_USER_UPDATE, FITROCKR_USER_PULL_DATE))) {
             new FitrockrUserComponent($this->services, array(
                 "uid" => $this->router->get_param_by_name('uid'),
                 "mode" => $mode
@@ -79,7 +79,7 @@ class FitrockrHooks extends BaseHooks
             "hookedClassInstance" => $args['hookedClassInstance'],
             "propertyName" => "mode"
         ));
-        if (in_array($mode, array(FITROCKR_UPDATE_USER))) {
+        if (in_array($mode, array(FITROCKR_USER_UPDATE, FITROCKR_USER_PULL_DATE))) {
             $args['methodName'] = 'has_access';
             return $this->execute_parent_method($args);
         } else {
