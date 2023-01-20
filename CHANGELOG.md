@@ -12,3 +12,4 @@
  - pull all `activities` for a user. The old data is deleted and it is reinserted
  - save `fitrockr_activities_summary` for a user. The old data is deleted and it is reinserted
  - add manual pull for a selected user
+ - add cronjob for pulling all the data for all the users

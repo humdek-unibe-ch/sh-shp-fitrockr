@@ -46,9 +46,6 @@ class FitrockrHooks extends BaseHooks
      */
     public function output_edit_fitrockr_user($args)
     {
-        // $field = $this->get_param_by_name($args, 'field');
-
-        // $mode = $args["hookedClassInstance"]->mode;
         $mode = $this->get_private_property(array(
             "hookedClassInstance" => $args['hookedClassInstance'],
             "propertyName" => "mode"

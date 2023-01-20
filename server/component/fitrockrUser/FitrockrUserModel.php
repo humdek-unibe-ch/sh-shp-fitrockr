@@ -52,7 +52,7 @@ class FitrockrUserModel extends UserModel
     private function fetch_fitrockr_user($id_users)
     {
         return $this->db->query_db_first('SELECT * FROM users_fitrockr WHERE `id_users` = :id_users', array(":id_users" => $id_users));
-    }
+    }    
 
     /**
      * Update Fitrockr user
@@ -178,7 +178,7 @@ class FitrockrUserModel extends UserModel
                 if ($this->transaction->add_transaction(
                     transactionTypes_insert,
                     $action_by,
-                    null,
+                    isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null,
                     $this->transaction::TABLE_uploadTables,
                     $id_table,
                     'Insert data in ' . $table_name . ' for Fitrockr user: ' . $fitrockr_user_id . ' with selfhelp user id: ' . $id_users
@@ -234,5 +234,14 @@ class FitrockrUserModel extends UserModel
      */
     public function get_mode(){
         return $this->mode;
+    }
+
+    /**
+     * Fetch fitrockr users
+     * @return object
+     * Return the fitrockr users
+     */
+    public function fetch_fitrockr_users(){
+        return $this->db->query_db('SELECT * FROM users_fitrockr');
     }
 }

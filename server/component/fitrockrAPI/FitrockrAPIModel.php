@@ -36,22 +36,22 @@ class FitrockrAPIModel extends FitrockrUserModel
 
     /* Private Methods *********************************************************/
 
-
-
     /* Public Methods *********************************************************/
 
     /**
      * Get daily summaries for a user. Execute curl request and prepare the data in a format to be saved as uploadTable
-     * @param $id_user
+     * @param int $id_user
      * Selfhelp user id
+     * @param string $transactionBy
+     * Who initiated the action
      * @return bool
      * Return the result
      */
-    public function get_daily_summaries($id_users)
+    public function get_daily_summaries($id_users, $transactionBy = transactionBy_by_user)
     {
         $fitrockr_user = $this->get_fitrockr_user($id_users);
         if (!$fitrockr_user || !isset($fitrockr_user['id_fitrockr'])) {
-            // fitrockr usr already created
+            // fitrockr user does not exists
             return false;
         }
         $get_params = array(
@@ -74,14 +74,14 @@ class FitrockrAPIModel extends FitrockrUserModel
                 // if status is set there is some error
                 return false;
             }
-            $selected_user = $this->get_selected_user();
+            $selected_user = $this->get_user($this->fetch_user($id_users));
             foreach ($res as $key => $value) {
                 $res[$key]['code'] = $selected_user['code'];
                 $res[$key]['id_users'] = $fitrockr_user['id_users'];
                 $date = date($value['date']['year'] . '-' . $value['date']['month'] . '-' . $value['date']['day']);
                 $res[$key]['date'] = $date;
             }
-            return $this->save_fitrockr_data(FITROCKR_DAILY_SUMMARIES, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $res);
+            return $this->save_fitrockr_data(FITROCKR_DAILY_SUMMARIES, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $res);
         }
         return false;
     }
@@ -150,16 +150,18 @@ class FitrockrAPIModel extends FitrockrUserModel
 
     /**
      * Get activities for a user. Execute curl request and prepare the data in a format to be saved as uploadTable
-     * @param $id_user
+     * @param int $id_user
      * Selfhelp user id
+     * @param string $transactionBy
+     * Who initiated the action
      * @return bool
      * Return the result
      */
-    public function get_activities($id_users)
+    public function get_activities($id_users, $transactionBy = transactionBy_by_user)
     {
         $fitrockr_user = $this->get_fitrockr_user($id_users);
         if (!$fitrockr_user || !isset($fitrockr_user['id_fitrockr'])) {
-            // fitrockr usr already created
+            // fitrockr user does not exists
             return false;
         }
         $get_params = array(
@@ -182,7 +184,7 @@ class FitrockrAPIModel extends FitrockrUserModel
                 // if status is set there is some error
                 return false;
             }
-            $selected_user = $this->get_selected_user();
+            $selected_user = $this->get_user($this->fetch_user($id_users));
             $dates_with_activity = array();
             $fitrockr_activity_duration = isset($this->fitrockr_settings['fitrockr_activity_duration']) && $this->fitrockr_settings['fitrockr_activity_duration'] != '' ? $this->fitrockr_settings['fitrockr_activity_duration'] : 0;
             foreach ($res as $key => $value) {
@@ -236,9 +238,35 @@ class FitrockrAPIModel extends FitrockrUserModel
                 }
             }
 
-            $save_fitrockr_activities_result = $this->save_fitrockr_data(FITROCKR_ACTIVITIES, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $res);
-            return $save_fitrockr_activities_result && $this->save_fitrockr_data(FITROCKR_ACTIVITIES_SUMMARY, transactionBy_by_user, $fitrockr_user['id_fitrockr'], $id_users, $calced_activities);
+            $save_fitrockr_activities_result = $this->save_fitrockr_data(FITROCKR_ACTIVITIES, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $res);
+            return $save_fitrockr_activities_result && $this->save_fitrockr_data(FITROCKR_ACTIVITIES_SUMMARY, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $calced_activities);
         }
         return false;
+    }
+
+    /**
+     * Pull all fitrockr data for all the users
+     * @param string $transactionBy
+     * Who initiated the action
+     */
+    public function pull_data_all_users($transactionBy)
+    {        
+        if (isset($this->fitrockr_settings['fitrockr_pull_data']) && $this->fitrockr_settings['fitrockr_pull_data']) {
+            $fitrockr_users = $this->fetch_fitrockr_users();
+            foreach ($fitrockr_users as $key => $user) {
+                $this->get_daily_summaries($user['id_users'], $transactionBy);
+                $this->get_activities($user['id_users'], $transactionBy);
+            }
+        } else {
+            $this->transaction->add_transaction(
+                transactionTypes_insert,
+                $transactionBy,
+                null,
+                $this->transaction::TABLE_uploadTables,
+                null,
+                "Disabled",
+                'Fitrockr - pulling data is disabled'
+            );
+        }        
     }
 }
