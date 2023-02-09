@@ -225,14 +225,17 @@ class FitrockrAPIModel extends FitrockrUserModel
                 for ($i = 0; $i < $days + 1; $i++) {
                     $check_date = date('Y-m-d', strtotime($first_entry_date . ' +' . $i . ' day'));
                     if (isset($dates_with_activity[$check_date])) {
-                        $calced_activities[] = $dates_with_activity[$check_date];
+                        $act = $dates_with_activity[$check_date];
+                        $act['day'] = $i + 1;
+                        $calced_activities[] = $act;
                     } else {
                         $calced_activities[] = array(
                             "code" => $selected_user['code'],
                             "id_users" => $fitrockr_user['id_users'],
                             "userId" => $fitrockr_user['id_fitrockr'],
                             "date" => $check_date,
-                            "activity_level" => 0
+                            "activity_level" => 0,
+                            "day" => $i + 1
                         );
                     }
                 }
@@ -250,7 +253,7 @@ class FitrockrAPIModel extends FitrockrUserModel
      * Who initiated the action
      */
     public function pull_data_all_users($transactionBy)
-    {        
+    {
         if (isset($this->fitrockr_settings['fitrockr_pull_data']) && $this->fitrockr_settings['fitrockr_pull_data']) {
             $fitrockr_users = $this->fetch_fitrockr_users();
             foreach ($fitrockr_users as $key => $user) {
@@ -267,6 +270,6 @@ class FitrockrAPIModel extends FitrockrUserModel
                 "Disabled",
                 'Fitrockr - pulling data is disabled'
             );
-        }        
+        }
     }
 }

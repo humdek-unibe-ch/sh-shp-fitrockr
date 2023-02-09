@@ -1,10 +1,12 @@
-# v1.0.1
+# v1.0.2
+### New Features
+ - add a column day in `fitrockr_activities_summary`
 
+# v1.0.1
 ### Bugfix
  - properly set height, weight and year
 
 # v1.0.0
-
 ### New Features
 
  - The Fitrockr plugin
