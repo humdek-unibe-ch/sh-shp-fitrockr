@@ -1,3 +1,7 @@
+# v1.0.3
+### New Features
+ - when a Fitrockr user is created automatically on successful validation the email is `user_code@unibe.ch`
+
 # v1.0.2
 ### New Features
  - add a column day in `fitrockr_activities_summary`

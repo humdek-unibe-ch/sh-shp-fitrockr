@@ -109,7 +109,7 @@ class FitrockrAPIModel extends FitrockrUserModel
                     "city" => "Bern",
                     "language" => "de",
                     "timeZone" => "GMT+1",
-                    "email" => $selected_user['email'],
+                    "email" => $selected_user['code'] . '@unibe.ch',
                     "yearOfBirth" => $_POST['year'],
                     "height" => $_POST['height'],
                     "heightUOM" => null,
