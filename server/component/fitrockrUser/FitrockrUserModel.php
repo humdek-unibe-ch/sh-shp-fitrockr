@@ -148,7 +148,7 @@ class FitrockrUserModel extends UserModel
      */
     public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $id_users, $data)
     {
-        $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_STATIC);
+        $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_EXTERNAL);
         $this->db->begin_transaction();
         if ($id_table) {
             // if the table exists, delete all the data for that user in that table
@@ -165,62 +165,9 @@ class FitrockrUserModel extends UserModel
             ));
         }
         try {
-            if (!$id_table) {
-                // does not exists yet; try to create it
-                $id_table = $this->db->insert("uploadTables", array(
-                    "name" => $table_name
-                ));
-            }
-            if (!$id_table) {
-                $this->db->rollback();
-                return "postprocess: failed to create new data table";
-            } else {
-                if ($this->transaction->add_transaction(
-                    transactionTypes_insert,
-                    $action_by,
-                    isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null,
-                    $this->transaction::TABLE_uploadTables,
-                    $id_table,
-                    'Insert data in ' . $table_name . ' for Fitrockr user: ' . $fitrockr_user_id . ' with selfhelp user id: ' . $id_users
-                ) === false) {
-                    $this->db->rollback();
-                    return false;
-                }
-
-                foreach ($data as $key => $row) {
-                    $id_row = $this->db->insert("uploadRows", array(
-                        "id_uploadTables" => $id_table
-                    ));
-                    if (!$id_row) {
-                        $this->db->rollback();
-                        return "postprocess: failed to add table rows";
-                    }
-                    foreach ($row as $col => $value) {
-                        $id_col = $this->db->insert("uploadCols", array(
-                            "name" => $col,
-                            "id_uploadTables" => $id_table
-                        ));
-                        if (!$id_col) {
-                            $this->db->rollback();
-                            return "postprocess: failed to add table cols";
-                        }
-                        $res = $this->db->insert(
-                            "uploadCells",
-                            array(
-                                "id_uploadRows" => $id_row,
-                                "id_uploadCols" => $id_col,
-                                "value" => ($value == null ? '' : $value)
-                            )
-                        );
-                        if (!$res) {
-                            $this->db->rollback();
-                            return "postprocess: failed to add data values";
-                        }
-                    }
-                }
-            }
+            $res = $this->user_input->save_external_data($action_by, $table_name, $data);
             $this->db->commit();
-            return true;
+            return $res;
         } catch (Exception $e) {
             $this->db->rollback();
             return false;
