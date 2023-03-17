@@ -139,14 +139,12 @@ class FitrockrUserModel extends UserModel
      * Who initiated the action
      * @param string $fitrockr_user_id
      * The fitrockr user id
-     * @param int $id_users
-     * The selfhelp user id
      * @param object $data
      * The data that we want to save. It is a format that can be inserted as uploadTable
      * @return bool
      * Return the result of the action
      */
-    public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $id_users, $data)
+    public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $data)
     {
         $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_EXTERNAL);
         $this->db->begin_transaction();

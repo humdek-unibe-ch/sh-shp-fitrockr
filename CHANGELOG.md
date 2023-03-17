@@ -1,5 +1,5 @@
-# v1.0.4 (unpublished)
- - requires SelfHelp <code>5.12.0+</code>
+# v1.0.4
+ - requires SelfHelp <code>6.0.0+</code>
  - adjust internal/external data changes
 
 # v1.0.3

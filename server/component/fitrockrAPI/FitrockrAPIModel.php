@@ -81,7 +81,7 @@ class FitrockrAPIModel extends FitrockrUserModel
                 $date = date($value['date']['year'] . '-' . $value['date']['month'] . '-' . $value['date']['day']);
                 $res[$key]['date'] = $date;
             }
-            return $this->save_fitrockr_data(FITROCKR_DAILY_SUMMARIES, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $res);
+            return $this->save_fitrockr_data(FITROCKR_DAILY_SUMMARIES, $transactionBy, $fitrockr_user['id_fitrockr'], $res);
         }
         return false;
     }
@@ -241,8 +241,8 @@ class FitrockrAPIModel extends FitrockrUserModel
                 }
             }
 
-            $save_fitrockr_activities_result = $this->save_fitrockr_data(FITROCKR_ACTIVITIES, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $res);
-            return $save_fitrockr_activities_result && $this->save_fitrockr_data(FITROCKR_ACTIVITIES_SUMMARY, $transactionBy, $fitrockr_user['id_fitrockr'], $id_users, $calced_activities);
+            $save_fitrockr_activities_result = $this->save_fitrockr_data(FITROCKR_ACTIVITIES, $transactionBy, $fitrockr_user['id_fitrockr'], $res);
+            return $save_fitrockr_activities_result && $this->save_fitrockr_data(FITROCKR_ACTIVITIES_SUMMARY, $transactionBy, $fitrockr_user['id_fitrockr'], $calced_activities);
         }
         return false;
     }
