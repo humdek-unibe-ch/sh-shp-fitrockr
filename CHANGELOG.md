@@ -1,3 +1,6 @@
+# v1.0.5 requires SelfHelp <code>6.1.6+</code>
+ - adjust create user with parameters: `height`, `year`, `weight` to work with the fixed `validation` style
+
 # v1.0.4
  - requires SelfHelp <code>6.0.0+</code>
  - adjust internal/external data changes
