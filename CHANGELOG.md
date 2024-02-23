@@ -1,3 +1,7 @@
+# v1.0.6
+### New Features
+ - load plugin version using `BaseHook` class
+
 # v1.0.5 requires SelfHelp <code>6.1.6+</code>
  - adjust create user with parameters: `height`, `year`, `weight` to work with the fixed `validation` style
 

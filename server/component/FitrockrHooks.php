@@ -118,5 +118,13 @@ class FitrockrHooks extends BaseHooks
         $this->transaction->add_transaction(transactionTypes_delete, transactionBy_by_user, $_SESSION['id_user'], TABLE_USERS_FITROCKR, $uid, false, json_encode($res));
         return $res;
     }
+
+    /**
+     * Get the plugin version
+     */
+    public function get_plugin_db_version($plugin_name = 'fitrockr')
+    {
+        return parent::get_plugin_db_version($plugin_name);
+    }
 }
 ?>
