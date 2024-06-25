@@ -61,7 +61,7 @@ class FitrockrPullData
             transactionTypes_insert,
             transactionBy_by_cron_job,
             null,
-            $this->transaction::TABLE_uploadTables,
+            $this->transaction::TABLE_dataTables,
             null,
             "",
             'Fitrockr cronjob executed for: ' . (microtime(true) - $debug_start_time)

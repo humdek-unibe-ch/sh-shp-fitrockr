@@ -132,7 +132,7 @@ class FitrockrUserModel extends UserModel
     }
 
     /**
-     * Save data from fitrockr request as uploadTable
+     * Save data from fitrockr request as dataTable
      * @param string $table_name
      * The name of the upload table where the data will be saved
      * @param string $action_by
@@ -140,22 +140,22 @@ class FitrockrUserModel extends UserModel
      * @param string $fitrockr_user_id
      * The fitrockr user id
      * @param object $data
-     * The data that we want to save. It is a format that can be inserted as uploadTable
+     * The data that we want to save. It is a format that can be inserted as dataTable
      * @return bool
      * Return the result of the action
      */
     public function save_fitrockr_data($table_name, $action_by, $fitrockr_user_id, $data)
     {
-        $id_table = $this->services->get_user_input()->get_form_id($table_name, FORM_EXTERNAL);
+        $id_table = $this->services->get_user_input()->get_dataTable_id($table_name);
         $this->db->begin_transaction();
         if ($id_table) {
             // if the table exists, delete all the data for that user in that table
             // we will insert all the data again
-            $sql = "DELETE FROM uploadRows
-            WHERE id IN (SELECT id_uploadRows FROM (SELECT id_uploadRows
-            FROM uploadCells c
-            INNER JOIN uploadRows r ON (r.id = c.id_uploadRows)
-            INNER JOIN uploadTables t ON (t.id = r.id_uploadTables)
+            $sql = "DELETE FROM dataRows
+            WHERE id IN (SELECT id_dataRows FROM (SELECT id_dataRows
+            FROM dataCells c
+            INNER JOIN dataRows r ON (r.id = c.id_dataRows)
+            INNER JOIN dataTables t ON (t.id = r.id_dataTables)
             WHERE c.`value` = :fitrockr_user_id AND t.`name` = :table_name) tmp)";
             $this->db->execute_update_db($sql, array(
                 ":fitrockr_user_id" => $fitrockr_user_id,
@@ -163,7 +163,7 @@ class FitrockrUserModel extends UserModel
             ));
         }
         try {
-            $res = $this->user_input->save_external_data($action_by, $table_name, $data);
+            $res = $this->user_input->save_data($action_by, $table_name, $data);
             $this->db->commit();
             return $res;
         } catch (Exception $e) {

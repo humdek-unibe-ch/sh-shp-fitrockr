@@ -39,7 +39,7 @@ class FitrockrAPIModel extends FitrockrUserModel
     /* Public Methods *********************************************************/
 
     /**
-     * Get daily summaries for a user. Execute curl request and prepare the data in a format to be saved as uploadTable
+     * Get daily summaries for a user. Execute curl request and prepare the data in a format to be saved as dataTable
      * @param int $id_user
      * Selfhelp user id
      * @param string $transactionBy
@@ -149,7 +149,7 @@ class FitrockrAPIModel extends FitrockrUserModel
     }
 
     /**
-     * Get activities for a user. Execute curl request and prepare the data in a format to be saved as uploadTable
+     * Get activities for a user. Execute curl request and prepare the data in a format to be saved as dataTable
      * @param int $id_user
      * Selfhelp user id
      * @param string $transactionBy
@@ -265,7 +265,7 @@ class FitrockrAPIModel extends FitrockrUserModel
                 transactionTypes_insert,
                 $transactionBy,
                 null,
-                $this->transaction::TABLE_uploadTables,
+                $this->transaction::TABLE_dataTables,
                 null,
                 "Disabled",
                 'Fitrockr - pulling data is disabled'
